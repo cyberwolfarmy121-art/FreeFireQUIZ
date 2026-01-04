@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Free Fire Quiz Panel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root{
+      --bg:#0d0f13;
+      --card:#151922;
+      --accent:#ffcc00;
+      --accent-2:#ffaa00;
+      --text:#ffffff;
+      --muted:#9aa3ad;
+      --green:#28a745;
+      --red:#dc3545;
+      --btn:#2a2f3a;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+      background: radial-gradient(1200px 600px at 20% 0%, #12161f 0%, var(--bg) 60%);
+      color: var(--text);
+    }
+    .container{
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+    .brand{
+      display:flex; align-items:center; gap:12px; margin-bottom:16px;
+    }
+    .brand .logo{
+      width:36px; height:36px; border-radius:8px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      box-shadow: 0 0 18px rgba(255,204,0,0.35);
+    }
+    .brand h1{
+      font-size: 20px; margin:0; letter-spacing:0.5px;
+    }
+    .card{
+      background: var(--card);
+      border-radius: 14px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.35);
+      border: 1px solid rgba(255,255,255,0.06);
+      padding: 20px;
+      margin: 16px 0;
+    }
+    .glow{
+      box-shadow: 0 0 18px rgba(255,204,0,0.25);
+      border: 1px solid rgba(255,204,0,0.35);
+    }
+    h2{
+      margin: 0 0 12px 0;
+      color: var(--accent);
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+    .muted{ color: var(--muted); font-size: 13px; }
+
+    /* Inputs & Buttons */
+    .field{
+      display:flex; flex-direction:column; gap:6px; margin-bottom:12px;
+    }
+    .field label{ font-size: 13px; color: var(--muted); }
+    .input{
+      width:100%;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: #0f131a;
+      color: var(--text);
+      outline: none;
+      transition: border .2s ease, box-shadow .2s ease;
+    }
+    .input:focus{
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(255,204,0,0.15);
+    }
+    .row{
+      display:flex; gap:12px; flex-wrap:wrap;
+    }
+    .btn{
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color:#000;
+      font-weight:700;
+      border:none;
+      border-radius: 10px;
+      padding: 12px 16px;
+      cursor:pointer;
+      transition: transform .08s ease, box-shadow .2s ease;
+      box-shadow: 0 8px 18px rgba(255,204,0,0.25);
+    }
+    .btn:hover{ box-shadow: 0 10px 22px rgba(255,204,0,0.35); }
+    .btn:active{ transform: scale(0.98); }
+    .btn-secondary{
+      background: var(--btn);
+      color: var(--text);
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow:none;
+    }
+    .hidden{ display:none !important; }
+
+    /* Winners bar */
+    .winners-bar{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:12px; padding: 10px 12px; border-radius: 10px;
+      background: #10141c; border: 1px solid rgba(255,255,255,0.06);
+    }
+    .winners-list{
+      display:flex; flex-wrap:wrap; gap:8px; font-size: 13px;
+    }
+    .badge{
+      background:#1b2130; border:1px solid rgba(255,255,255,0.08);
+      padding:6px 10px; border-radius: 999px; font-size:12px;
+    }
+
+    /* Quiz */
+    .quiz-header{
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      margin-bottom: 12px;
+    }
+    .timer{
+      padding: 8px 12px; border-radius: 999px;
+      background: #1b2130; border: 1px solid rgba(255,255,255,0.08);
+      font-weight: 600;
+    }
+    .score{
+      padding: 8px 12px; border-radius: 999px;
+      background: #1b2130; border: 1px solid rgba(255,255,255,0.08);
+      font-weight: 600;
+    }
+    .question{
+      font-size: 16px; margin-bottom: 12px;
+    }
+    .options{
+      display:flex; flex-wrap:wrap; gap:10px;
+    }
+    .option{
+      flex: 1 1 calc(50% - 10px);
+      min-width: 140px;
+      background:#0f131a;
+      border:1px solid rgba(255,255,255,0.08);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 12px;
+      cursor:pointer;
+      text-align:left;
+      transition: background .2s ease, border .2s ease, transform .08s ease;
+    }
+    .option:hover{ background:#141a23; }
+    .option:active{ transform: scale(0.98); }
+    .option.correct{
+      background: var(--green) !important; color:#fff; border-color: rgba(255,255,255,0.12);
+    }
+    .option.wrong{
+      background: var(--red) !important; color:#fff; border-color: rgba(255,255,255,0.12);
+    }
+    .correct-info{
+      margin-top:8px; font-size:13px; color: var(--muted);
+    }
+
+    /* Slide animation */
+    .slide{
+      animation: slideIn .35s ease both;
+    }
+    @keyframes slideIn{
+      from{ opacity:0; transform: translateY(8px); }
+      to{ opacity:1; transform: translateY(0); }
+    }
+
+    /* Redeem */
+    .redeem-box{
+      display:flex; align-items:center; gap:10px; margin-top:10px;
+    }
+    .code{
+      padding: 10px 12px; border-radius: 10px;
+      background: #0f131a; border: 1px solid rgba(255,255,255,0.08);
+      font-weight: 700; letter-spacing: 0.6px;
+    }
+
+    /* Responsive */
+    @media (max-width: 640px){
+      .container{ padding: 16px; }
+      .card{ padding: 16px; }
+      .option{ flex: 1 1 100%; }
+      .quiz-header{ flex-direction: column; align-items: stretch; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="brand">
+      <div class="logo"></div>
+      <h1>Free Fire Quiz Panel</h1>
+    </div>
+
+    <!-- Account Form -->
+    <section id="accountForm" class="card glow">
+      <h2>Create account</h2>
+      <p class="muted">Enter your details to generate your access key and start the 2‑minute challenge.</p>
+      <div class="row">
+        <div class="field" style="flex:1 1 240px;">
+          <label>Username</label>
+          <input id="username" class="input" placeholder="Enter username" />
+        </div>
+        <div class="field" style="flex:1 1 240px;">
+          <label>UID</label>
+          <input id="uid" class="input" placeholder="Enter Free Fire UID" />
+        </div>
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input id="password" type="password" class="input" placeholder="Enter password" />
+      </div>
+      <div class="row">
+        <button type="button" class="btn" id="createBtn">Create account & get key</button>
+        <button type="button" class="btn btn-secondary" id="resetBtn">Reset</button>
+      </div>
+      <p id="banInfo" class="muted" style="margin-top:8px;"></p>
+
+      <!-- Access Key Gate -->
+      <div id="keyGate" class="card hidden" style="margin-top:12px;">
+        <h2>Your access key</h2>
+        <p class="muted">Use this key to enter the quiz page.</p>
+        <div class="row" style="align-items:center;">
+          <div class="code" id="playerKey">KEY-XXXXXX</div>
+          <button type="button" class="btn btn-secondary" id="copyKeyBtn">Copy key</button>
+        </div>
+        <div class="field" style="margin-top:12px;">
+          <label>Enter access key</label>
+          <input id="keyInput" class="input" placeholder="Paste your key here" />
+        </div>
+        <button class="btn" id="enterQuizBtn">Enter quiz</button>
+        <p id="keyInfo" class="muted" style="margin-top:8px;"></p>
+      </div>
+    </section>
+
+    <!-- Quiz Page -->
+    <section id="quizPage" class="card hidden">
+      <div class="winners-bar">
+        <div>
+          <strong>Live winners</strong>
+          <span class="badge"><span id="winnerCount">0</span>/4</span>
+        </div>
+        <div id="winnerList" class="winners-list"></div>
+      </div>
+
+      <div class="quiz-header">
+        <h2>Free Fire quiz</h2>
+        <div class="row" style="gap:8px;">
+          <div class="timer" id="timer">Time left: 120s</div>
+          <div class="score" id="score">Score: 0</div>
+        </div>
+      </div>
+
+      <div id="questionBox" class="slide"></div>
+    </section>
+
+    <!-- Redeem Page -->
+    <section id="redeemPage" class="card hidden">
+      <h2>You had won!</h2>
+      <p class="muted">Claim your code below. Only 4 winners will receive a redeem code.</p>
+      <div class="row">
+        <button type="button" class="btn" id="redeemBtn">Redeem</button>
+      </div>
+      <div id="redeemBox" class="redeem-box hidden">
+        <div class="code" id="code">FF-REDEEM-XXXX</div>
+        <button type="button" class="btn btn-secondary" id="copyBtn">Copy</button>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // Persistent storage helpers
+    const getBannedUIDs = () => JSON.parse(localStorage.getItem("bannedUIDs") || "[]");
+    const addBannedUID = (uid) => {
+      const list = getBannedUIDs();
+      if(!list.includes(uid)){
+        list.push(uid);
+        localStorage.setItem("bannedUIDs", JSON.stringify(list));
+      }
+    };
+
+    const getWinners = () => JSON.parse(localStorage.getItem("winners") || "[]");
+    const setWinners = (arr) => localStorage.setItem("winners", JSON.stringify(arr));
+
+    const getKeys = () => JSON.parse(localStorage.getItem("playerKeys") || "{}");
+    const setKeys = (obj) => localStorage.setItem("playerKeys", JSON.stringify(obj));
+
+    // State
+    let score = 0;
+    let time = 120; // 2 minutes
+    let timerInterval = null;
+    let winners = getWinners();
+    let currentQ = 0;
+    let lockedOut = false;
+    let currentUID = null;
+    let currentUsername = null;
+    let currentKey = null;
+
+    // Questions: 10 easy + 5 difficult
+    const questions = [
+      {q:"Who is the main Free Fire mascot?", options:["Kelly","Hayato","Moco","Andrew"], answer:"Kelly"},
+      {q:"Which company owns Free Fire?", options:["Tencent","Garena","EA","Ubisoft"], answer:"Garena"},
+      {q:"Free Fire max squad size?", options:["2","3","4","5"], answer:"4"},
+      {q:"Which gun is a sniper?", options:["M82B","MP40","M1014","UMP"], answer:"M82B"},
+      {q:"Free Fire release year?", options:["2015","2017","2019","2020"], answer:"2017"},
+      {q:"Which map includes Bermuda?", options:["Kalahari","Bermuda","Purgatory","Alpine"], answer:"Bermuda"},
+      {q:"Which pet helps with EP?", options:["Poring","Falco","Ottero","Detective Panda"], answer:"Ottero"},
+      {q:"Which mode is ranked?", options:["Clash Squad","Classic","Training","Custom"], answer:"Clash Squad"},
+      {q:"Which character has ‘Riptide Rhythm’?", options:["K","Alok","Chrono","Skyler"], answer:"Skyler"},
+      {q:"Which vehicle is fastest?", options:["Jeep","Motorbike","Monster Truck","Sports Car"], answer:"Motorbike"},
+      // Difficult
+      {q:"Chrono’s skill name?", options:["Time Turner","Shield Wall","Force Field","Dimension"], answer:"Time Turner"},
+      {q:"Max level of character skill?", options:["5","6","7","8"], answer:"6"},
+      {q:"Which sniper penetrates gloo walls?", options:["AWM","M82B","Dragunov","Kar98k"], answer:"M82B"},
+      {q:"Which grenade heals?", options:["Smoke","Flash","Med","Gloo"], answer:"Med"},
+      {q:"Which Free Fire world tournament started in 2019?", options:["FFWS","FFPL","FFIC","FFMC"], answer:"FFWS"}
+    ];
+
+    // Elements
+    const accountForm = document.getElementById("accountForm");
+    const keyGate = document.getElementById("keyGate");
+    const quizPage = document.getElementById("quizPage");
+    const redeemPage = document.getElementById("redeemPage");
+    const questionBox = document.getElementById("questionBox");
+    const timerEl = document.getElementById("timer");
+    const scoreEl = document.getElementById("score");
+    const winnerListEl = document.getElementById("winnerList");
+    const winnerCountEl = document.getElementById("winnerCount");
+    const codeEl = document.getElementById("code");
+    const redeemBox = document.getElementById("redeemBox");
+    const banInfo = document.getElementById("banInfo");
+    const playerKeyEl = document.getElementById("playerKey");
+    const keyInputEl = document.getElementById("keyInput");
+    const keyInfoEl = document.getElementById("keyInfo");
+
+    const usernameEl = document.getElementById("username");
+    const uidEl = document.getElementById("uid");
+    const passwordEl = document.getElementById("password");
+
+    const createBtn = document.getElementById("createBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const copyKeyBtn = document.getElementById("copyKeyBtn");
+    const enterQuizBtn = document.getElementById("enterQuizBtn");
+    const redeemBtn = document.getElementById("redeemBtn");
+    const copyBtn = document.getElementById("copyBtn");
+
+    // Initialize winners UI from storage
+    function renderWinners(){
+      winners = getWinners();
+      winnerListEl.innerHTML = winners.map(w => `<span class="badge">${w}</span>`).join(" ");
+      winnerCountEl.textContent = winners.length;
+    }
+    renderWinners();
+
+    // Generate random access key
+    function generateAccessKey(){
+      const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+      let k = "KEY-";
+      for(let i=0;i<6;i++){
+        k += chars[Math.floor(Math.random()*chars.length)];
+      }
+      return k;
+    }
+
+    // Timer
+    function startTimer(){
+      timerInterval = setInterval(()=>{
+        time--;
+        timerEl.textContent = `Time left: ${time}s`;
+        if(time <= 0){
+          clearInterval(timerInterval);
+          lockedOut = true;
+          if(currentUID){
+            addBannedUID(currentUID);
+          }
+          alert("Time over! You are blocked for this session. Your UID is banned.");
+          quizPage.classList.add("hidden");
+          redeemPage.classList.add("hidden");
+          accountForm.classList.remove("hidden");
+          keyGate.classList.add("hidden");
+          createBtn.disabled = true;
+          createBtn.textContent = "Blocked (refresh to retry)";
+          banInfo.textContent = "Your UID has been banned. You cannot log in again with the same UID.";
+        }
+      }, 1000);
+    }
+
+    // Slide question
+    function showQuestion(){
+      if(currentQ >= questions.length){
+        if(score === questions.length){
+          clearInterval(timerInterval);
+          quizPage.classList.add("hidden");
+          redeemPage.classList.remove("hidden");
+        } else {
+          alert(`Quiz finished! Your score: ${score}/${questions.length}`);
+          location.reload();
+        }
+        return;
+      }
+
+      const q = questions[currentQ];
+      questionBox.innerHTML = "";
+      const wrapper = document.createElement("div");
+      wrapper.className = "slide";
+
+      const qEl = document.createElement("div");
+      qEl.className = "question";
+      qEl.textContent = `${currentQ + 1}. ${q.q}`;
+      wrapper.appendChild(qEl);
+
+      const opts = document.createElement("div");
+      opts.className = "options";
+
+      let answered = false;
+
+      q.options.forEach(opt=>{
+        const btn = document.createElement("button");
+        btn.className = "option";
+        btn.textContent = opt;
+        btn.onclick = ()=>{
+          if(answered) return;
+          answered = true;
+
+          if(opt === q.answer){
+            btn.classList.add("correct");
+            score++;
+          } else {
+            btn.classList.add("wrong");
+            score--;
+            const info = document.createElement("div");
+            info.className = "correct-info";
+            info.textContent = `Correct answer: ${q.answer}`;
+            wrapper.appendChild(info);
+            [...opts.children].forEach(o=>{
+              if(o.textContent === q.answer) o.classList.add("correct");
+            });
+          }
+
+          scoreEl.textContent = `Score: ${score}`;
+          setTimeout(()=>{
+            currentQ++;
+            showQuestion();
+          }, 900);
+        };
+        opts.appendChild(btn);
+      });
+
+      wrapper.appendChild(opts);
+      questionBox.appendChild(wrapper);
+    }
+
+    function startQuiz(){
+      score = 0;
+      time = 120;
+      currentQ = 0;
+      scoreEl.textContent = "Score: 0";
+      timerEl.textContent = "Time left: 120s";
+      showQuestion();
+      startTimer();
+    }
+
+    function randomRedeemCode(){
+      const num = Math.floor(Math.random() * (3000 - 1000 + 1)) + 1000;
+      return `FF-REDEEM-${num}`;
+    }
+
+    // Events
+    createBtn.onclick = ()=>{
+      if(lockedOut) return;
+      const u = usernameEl.value.trim();
+      const id = uidEl.value.trim();
+      const pw = passwordEl.value.trim();
+
+      if(!u || !id || !pw){
+        alert("Please fill Username, UID, and Password.");
+        return;
+      }
+
+      // Check UID ban
+      const banned = getBannedUIDs();
+      if(banned.includes(id)){
+        banInfo.textContent = "This UID is banned. You cannot log in.";
+        alert("Login blocked: UID is banned.");
+        return;
+      }
+
+      currentUID = id;
+      currentUsername = u;
+
+      // Generate and store access key for this UID
+      const key = generateAccessKey();
+      currentKey = key;
+      const keys = getKeys();
+      keys[id] = key;
+      setKeys(keys);
+
+      playerKeyEl.textContent = key;
+      keyGate.classList.remove("hidden");
+      banInfo.textContent = "Access key generated. Enter the key to proceed to the quiz.";
+    };
+
+    copyKeyBtn.onclick = async ()=>{
+      const text = playerKeyEl.textContent;
+      try{
+        await navigator.clipboard.writeText(text);
+        alert("Access key copied!");
+      }catch(e){
+        alert("Copy failed. Please select and copy manually.");
+      }
+    };
+
+    enterQuizBtn.onclick = ()=>{
+      const entered = keyInputEl.value.trim();
+      const keys = getKeys();
+      const id = uidEl.value.trim();
+
+      if(!entered){
+        keyInfoEl.textContent = "Please enter your access key.";
+        return;
+      }
+      if(!keys[id]){
+        keyInfoEl.textContent = "No key found for this UID. Generate again.";
+        return;
+      }
+      if(entered !== keys[id]){
+        keyInfoEl.textContent = "Invalid key. Please check and try again.";
+        return;
+      }
+
+      // Valid key → enter quiz
+      accountForm.classList.add("hidden");
+      quizPage.classList.remove("hidden");
+      keyGate.classList.add("hidden");
+      startQuiz();
+    };
+
+    resetBtn.onclick = ()=>{
+      usernameEl.value = "";
+      uidEl.value = "";
+      passwordEl.value = "";
+      banInfo.textContent = "";
+      keyGate.classList.add("hidden");
+      keyInputEl.value = "";
+      playerKeyEl.textContent = "KEY-XXXXXX";
+    };
+
+    redeemBtn.onclick = ()=>{
+      redeemBox.classList.remove("hidden");
+      const code = randomRedeemCode();
+      codeEl.textContent = code;
+
+      // Add winner if under limit
+      const name = (currentUsername?.trim() || `User${winners.length+1}`);
+      winners = getWinners();
+      if(winners.length < 4){
+        winners.push(name);
+        setWinners(winners);
+        renderWinners();
+      } else {
+        alert("Only 4 winners allowed!");
+      }
+    };
+
+    copyBtn.onclick = async ()=>{
+      const text = codeEl.textContent;
+      try{
+        await navigator.clipboard.writeText(text);
+        alert("Code copied!");
+      }catch(e){
+        alert("Copy failed. Please select and copy manually.");
+      }
+    };
+  </script>
+</body>
+</html>
